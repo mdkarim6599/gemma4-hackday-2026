@@ -15,15 +15,15 @@ of text and no structure you can practise against.
 
 ## Solution
 
-StudyMate AI takes **one input** — a photo of notes/diagram, or text you paste, or a question — and
+StudyMate AI takes **one input** — a photo, PDF/Word document, text you paste, or a question — and
 produces a structured **study sheet** in one of five modes:
 
 | Mode | Input | What the student gets |
 |---|---|---|
-| **Explain a topic** | photo or typed topic | explanation, real-life analogy, key points, exam keywords |
-| **Generate a quiz** | photo or typed topic | 3–8 MCQs with four options each, instant scoring and answer explanations |
-| **Summarise notes** | pasted notes or a photo of the page | a tight summary, key points to revise, exam keywords |
-| **Solve a doubt** | your question (+ optional photo) | concept explanation, analogy, a worked example, code, a step-by-step dry run |
+| **Explain a topic** | photo, PDF, Word document or typed topic | explanation, real-life analogy, key points, exam keywords |
+| **Generate a quiz** | photo, PDF, Word document or typed topic | 3–8 MCQs with four options each, instant scoring and answer explanations |
+| **Summarise notes** | pasted notes, photo, PDF or Word document | a tight summary, key points to revise, exam keywords |
+| **Solve a doubt** | your question (+ optional photo, PDF or Word document) | concept explanation, analogy, a worked example, code, a step-by-step dry run |
 | **Build a study plan** | topics + days left | a day-by-day plan with tasks and a self-test for each day |
 
 The core loop is: **student shares material → Gemma 4 understands it → the app responds → the student acts (reads, attempts, revises)**.
@@ -31,7 +31,7 @@ The core loop is: **student shares material → Gemma 4 understands it → the a
 ## How It Works
 
 ```
-Photo of notes / pasted notes / typed topic / a question
+Photo / PDF / Word document / pasted notes / typed topic / a question
                     |
                     v
     Gemma 4 (gemma-4-26b-a4b-it)  -- multimodal: reads the image directly
@@ -43,9 +43,10 @@ Photo of notes / pasted notes / typed topic / a question
     explanation - analogy - key points - keywords - quiz - plan
 ```
 
-1. **Input** — the student picks a mode, then uploads an image, pastes notes, types a topic or asks
-   a question. They also pick a difficulty (Beginner / Intermediate / Exam-ready) and a language
-   (English / Hinglish).
+1. **Input** — the student picks a mode, then uploads an image, PDF, Word document, pastes notes,
+   types a topic or asks a question. PDF and DOCX text is extracted locally before the structured
+   prompt is sent to Gemma 4. They also pick a difficulty (Beginner / Intermediate / Exam-ready)
+   and a language (English / Hinglish).
 2. **Gemma 4** — the model reads the image (multimodal) or the text and returns **JSON only**, shaped
    for the chosen mode.
 3. **Validation** — the app parses and validates the JSON into a `StudyPack` (MCQ count, four options
@@ -57,7 +58,7 @@ Photo of notes / pasted notes / typed topic / a question
 ## Architecture
 
 ```
-app.py                     Streamlit UI: mode picker, inputs, sheet rendering, quiz scoring
+app.py                     Streamlit UI: image/PDF/DOCX inputs, sheet rendering, quiz scoring
 gemma_client.py            Gemma 4 client: per-mode prompt + JSON schema, multimodal call, validation
 fallback_study_packs.json  Cached example sheet per mode, used only if the live API call fails
 check.py                   CLI end-to-end check: --mode <explain|quiz|summarise|doubt|plan>, --all

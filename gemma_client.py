@@ -310,7 +310,7 @@ def build_prompt(
             "Analyse the attached image and use the study material visible in it as the source. "
             "First read the text and any diagram, then work from that."
         )
-    elif mode == "summarise":
+    elif notes:
         source = "Use the notes below as the source material:\n\n" + notes
     elif mode == "doubt":
         source = "The student says: " + question

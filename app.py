@@ -6,8 +6,11 @@ Gemma 4 reads the page; this file only presents what the model returns.
 from __future__ import annotations
 
 from pathlib import Path
+from io import BytesIO
 
 import streamlit as st
+from docx import Document
+from pypdf import PdfReader
 
 import gemma_client as gc
 
@@ -234,6 +237,7 @@ with st.sidebar:
 topic = notes = question = plan_topics = None
 image_bytes: bytes | None = None
 image_mime: str | None = None
+document_name: str | None = None
 days = 5
 
 
@@ -246,18 +250,47 @@ def photo_input(label: str, key: str) -> tuple[bytes | None, str | None, bool]:
     return None, None, True  # the uploader exists, so an image is possible
 
 
+def document_input(label: str, key: str) -> tuple[str | None, str | None]:
+    """Extract selectable text from a PDF or DOCX locally before sending it to Gemma."""
+    uploaded = st.file_uploader(label, type=["pdf", "docx"], key=key)
+    if uploaded is None:
+        return None, None
+    try:
+        raw = uploaded.getvalue()
+        if uploaded.name.lower().endswith(".pdf"):
+            pages = PdfReader(BytesIO(raw)).pages
+            text = "\n\n".join(page.extract_text() or "" for page in pages)
+        else:
+            doc = Document(BytesIO(raw))
+            paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
+            tables = [" | ".join(cell.text.strip() for cell in row.cells)
+                      for table in doc.tables for row in table.rows]
+            text = "\n".join(paragraphs + tables)
+        text = text.strip()[:40_000]
+        if not text:
+            st.warning("No selectable text found. For a scanned PDF, upload a screenshot/photo instead.")
+            return None, uploaded.name
+        st.info(f"Read {len(text):,} characters from **{uploaded.name}**.")
+        return text, uploaded.name
+    except Exception as exc:  # noqa: BLE001
+        st.error(f"Could not read {uploaded.name}: {exc}")
+        return None, uploaded.name
+
+
 if mode in ("explain", "quiz"):
-    source = st.radio("Studying from", ["A photo of my notes", "A topic I type"],
+    source = st.radio("Studying from", ["A photo of my notes", "A PDF or Word document", "A topic I type"],
                       horizontal=True, key=f"source_{mode}")
     if source == "A photo of my notes":
         image_bytes, image_mime, _ = photo_input(
             "Upload a photo of your notes, a textbook page or a diagram", f"up_{mode}"
         )
+    elif source == "A PDF or Word document":
+        notes, document_name = document_input("Upload a PDF or .docx file", f"doc_{mode}")
     else:
         topic = st.text_input("Topic", placeholder="K-Means clustering, Binary Search, Recursion…", key="topic")
 
 elif mode == "summarise":
-    source = st.radio("Summarising", ["Pasted notes", "A photo of the page"],
+    source = st.radio("Summarising", ["Pasted notes", "A photo of the page", "A PDF or Word document"],
                       horizontal=True, key="source_summarise")
     if source == "Pasted notes":
         notes = st.text_area(
@@ -266,10 +299,12 @@ elif mode == "summarise":
             placeholder="Paste a long passage, a chapter or your own notes here…",
             key="notes",
         )
-    else:
+    elif source == "A photo of the page":
         image_bytes, image_mime, _ = photo_input(
             "Upload a photo of the page to summarise", "up_summarise"
         )
+    else:
+        notes, document_name = document_input("Upload a PDF or .docx file to summarise", "doc_summarise")
 
 elif mode == "doubt":
     question = st.text_input(
@@ -279,6 +314,10 @@ elif mode == "doubt":
     )
     with st.expander("Add a photo of the page you're stuck on (optional)"):
         image_bytes, image_mime, _ = photo_input("Upload a photo", "up_doubt")
+    with st.expander("Or add a PDF/Word document (optional)"):
+        document_notes, document_name = document_input("Upload a PDF or .docx file", "doc_doubt")
+        if document_notes:
+            question = f"{question}\n\nRelevant document context:\n{document_notes}"
 
 else:  # study plan
     plan_topics = st.text_area(
@@ -301,7 +340,7 @@ generate = st.button(BUTTON[mode], type="primary", use_container_width=True)
 # ---------------------------------------------------------------------- generate
 if generate:
     missing = (
-        (mode in ("explain", "quiz") and not topic and not image_bytes)
+        (mode in ("explain", "quiz") and not topic and not notes and not image_bytes)
         or (mode == "summarise" and not notes and not image_bytes)
         or (mode == "doubt" and not question)
         or (mode == "plan" and not plan_topics)
