@@ -211,17 +211,18 @@ mode_label = st.radio(
     [gc.MODE_LABELS[m] for m in gc.MODES],
     horizontal=True,
     index=0,
+    key="mode",
 )
 mode = gc.MODES[[gc.MODE_LABELS[m] for m in gc.MODES].index(mode_label)]
 
 # --------------------------------------------------------------------- sidebar
 with st.sidebar:
     st.markdown("### Set up the sheet")
-    difficulty = st.radio("Level", gc.DIFFICULTIES, index=1)
-    language = st.radio("Language", gc.LANGUAGES, index=0)
+    difficulty = st.radio("Level", gc.DIFFICULTIES, index=1, key="difficulty")
+    language = st.radio("Language", gc.LANGUAGES, index=0, key="language")
     num_mcqs = 5
     if mode == "quiz":
-        num_mcqs = st.slider("Questions", 3, 8, 5)
+        num_mcqs = st.slider("Questions", 3, 8, 5, key="num_mcqs")
     st.divider()
     if gc.get_api_key():
         st.markdown("Gemma 4 key loaded.")
@@ -253,7 +254,7 @@ if mode in ("explain", "quiz"):
             "Upload a photo of your notes, a textbook page or a diagram", f"up_{mode}"
         )
     else:
-        topic = st.text_input("Topic", placeholder="K-Means clustering, Binary Search, Recursion…")
+        topic = st.text_input("Topic", placeholder="K-Means clustering, Binary Search, Recursion…", key="topic")
 
 elif mode == "summarise":
     source = st.radio("Summarising", ["Pasted notes", "A photo of the page"],
@@ -263,6 +264,7 @@ elif mode == "summarise":
             "Paste the notes you want condensed",
             height=210,
             placeholder="Paste a long passage, a chapter or your own notes here…",
+            key="notes",
         )
     else:
         image_bytes, image_mime, _ = photo_input(
@@ -273,6 +275,7 @@ elif mode == "doubt":
     question = st.text_input(
         "What are you stuck on?",
         placeholder="I don't understand recursion — walk me through it",
+        key="question",
     )
     with st.expander("Add a photo of the page you're stuck on (optional)"):
         image_bytes, image_mime, _ = photo_input("Upload a photo", "up_doubt")
@@ -282,8 +285,9 @@ else:  # study plan
         "Topics to cover",
         height=160,
         placeholder="DBMS\nOperating Systems\nComputer Networks\nData Structures",
+        key="plan_topics",
     )
-    days = st.number_input("Days until the exam", min_value=1, max_value=14, value=5)
+    days = st.number_input("Days until the exam", min_value=1, max_value=14, value=5, key="days")
 
 BUTTON = {
     "explain": "Explain this",
