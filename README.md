@@ -119,6 +119,33 @@ python check.py --image samples/sample-notes.png   # explain a photo
 python check.py --all                        # one live call per mode
 ```
 
+## Try the app online
+
+The repository page shows the source code; the Python app itself runs on Streamlit Community Cloud.
+Deploy it in one click from the **Deploy** button below, or open the deployment page directly:
+
+[![Deploy to Streamlit Community Cloud](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/deploy?repo=mdkarim6599/gemma4-hackday-2026&branch=main&mainModule=app.py)
+
+On the deployment page choose:
+
+```text
+Repository: mdkarim6599/gemma4-hackday-2026
+Branch:     main
+Main file:  app.py
+```
+
+Before launching, add these values under **Advanced settings → Secrets**. Never put the API key in
+the repository or in a public README:
+
+```toml
+GEMINI_API_KEY = "your_google_ai_studio_key"
+GEMMA_MODEL = "gemma-4-26b-a4b-it"
+```
+
+After deployment, Streamlit provides a public `*.streamlit.app` URL that can be shared alongside
+this GitHub repository. The app has a cached example sheet per mode, so the UI remains demoable even
+when the API quota is temporarily unavailable.
+
 ## Current Status
 
 **Works:** all five modes end to end (explain, quiz, summarise, doubt, plan); photo and text input;
