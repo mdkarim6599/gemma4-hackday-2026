@@ -407,19 +407,31 @@ def generate_study_pack(
         )
     contents.append(prompt)
 
-    client = genai.Client(api_key=api_key)
+    client = genai.Client(
+        api_key=api_key,
+        http_options=types.HttpOptions(
+            timeout=45_000,  # ms: keep a rate-limited call from hanging the page
+            retry_options=types.HttpRetryOptions(attempts=1),  # our own loop handles retries
+        ),
+    )
     config = types.GenerateContentConfig(
         temperature=temperature,
         system_instruction=SYSTEM_INSTRUCTION,
     )
 
-    last_error: Exception | None = None
-    for _ in range(2):  # one retry: the model occasionally returns malformed JSON
+    def call() -> str:
+        response = client.models.generate_content(model=model, contents=contents, config=config)
+        return response.text or ""
+
+    try:
+        text = call()
+    except Exception as exc:  # noqa: BLE001 - transport/API error: fail fast so the caller can fall back
+        raise RuntimeError(f"Gemma 4 call failed: {exc}") from exc
+
+    try:
+        return StudyPack.from_dict(extract_json(text), model=model, mode=mode)
+    except Exception:  # malformed JSON: retry once
         try:
-            response = client.models.generate_content(model=model, contents=contents, config=config)
-            return StudyPack.from_dict(
-                extract_json(response.text or ""), model=model, mode=mode
-            )
+            return StudyPack.from_dict(extract_json(call()), model=model, mode=mode)
         except Exception as exc:  # noqa: BLE001 - surfaced to the caller
-            last_error = exc
-    raise RuntimeError(f"Gemma 4 call failed: {last_error}")
+            raise RuntimeError(f"Gemma 4 returned unusable JSON: {exc}") from exc
