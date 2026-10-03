@@ -1,0 +1,121 @@
+{
+  "explain": {
+    "topic": "K-Means Clustering",
+    "detected_text": "",
+    "explanation": "K-Means is an unsupervised machine-learning algorithm that groups data points into K clusters.\nIt repeats two steps: assign every point to the nearest cluster centre (centroid), then move each centroid to the average of the points assigned to it.\nThe two steps repeat until the centroids stop moving.\nThe result is K groups where points inside a group are as similar as possible.",
+    "analogy": "Three friends pick a meeting spot in a park. Everyone walks to the nearest friend, then each friend moves to the middle of their group. Repeat a few times and everyone settles into three tight circles.",
+    "example": "With K = 2 and points at 1, 2, 3 and 20, 21, 22, the algorithm settles on one centroid near 2 and one near 21.",
+    "key_points": [
+      "Unsupervised: no labels are needed, only the number of clusters K.",
+      "Steps: initialise centroids, assign points, update centroids, repeat until stable.",
+      "Distance is usually Euclidean distance.",
+      "Choosing K: the Elbow method or the Silhouette score.",
+      "Sensitive to initial placement, so K-Means++ initialisation is used in practice."
+    ],
+    "keywords": [
+      "unsupervised learning",
+      "centroid",
+      "cluster",
+      "Euclidean distance",
+      "convergence",
+      "Elbow method",
+      "Silhouette score",
+      "K-Means++",
+      "inertia"
+    ]
+  },
+
+  "quiz": {
+    "topic": "K-Means Clustering",
+    "detected_text": "",
+    "explanation": "Five questions on how K-Means groups unlabelled data.",
+    "keywords": ["centroid", "cluster", "inertia", "Elbow method", "K-Means++"],
+    "mcqs": [
+      {
+        "question": "K-Means is which type of machine-learning algorithm?",
+        "options": ["Classification", "Clustering", "Regression", "Dimensionality reduction"],
+        "answer_index": 1,
+        "explanation": "K-Means groups unlabelled points into clusters, so it is unsupervised clustering."
+      },
+      {
+        "question": "What is a centroid in K-Means?",
+        "options": ["A cluster label", "The mean position of the points in a cluster", "The farthest data point", "A random data point"],
+        "answer_index": 1,
+        "explanation": "The centroid is the average of all points currently assigned to that cluster."
+      },
+      {
+        "question": "When does K-Means converge?",
+        "options": ["After exactly 10 iterations", "When the centroids stop changing", "When every cluster has one point", "When K becomes zero"],
+        "answer_index": 1,
+        "explanation": "Iteration stops once assignments and centroids are stable."
+      },
+      {
+        "question": "Which method is commonly used to choose K?",
+        "options": ["Gradient descent", "Elbow method", "Backpropagation", "Bayes theorem"],
+        "answer_index": 1,
+        "explanation": "The Elbow method plots inertia against K and looks for the bend."
+      },
+      {
+        "question": "Which quantity does K-Means minimise?",
+        "options": ["Sum of squared distances to the nearest centroid", "Number of clusters", "Accuracy", "Learning rate"],
+        "answer_index": 0,
+        "explanation": "K-Means minimises inertia, the sum of squared distances to each point's centroid."
+      }
+    ]
+  },
+
+  "summarise": {
+    "topic": "Binary Search",
+    "detected_text": "",
+    "summary": "Binary search finds a value in a sorted array by halving the search range each step. It compares the target with the middle element and discards the half that cannot contain it. It needs a sorted array and runs in logarithmic time.",
+    "key_points": [
+      "The array must be sorted before searching.",
+      "Each comparison removes half of the remaining range.",
+      "Time complexity is O(log n); iterative space complexity is O(1).",
+      "Use mid = low + (high - low) // 2 to avoid overflow.",
+      "It is an example of divide and conquer."
+    ],
+    "keywords": ["sorted array", "divide and conquer", "O(log n)", "mid index", "monotonic", "logarithmic search"]
+  },
+
+  "doubt": {
+    "topic": "Recursion",
+    "explanation": "Recursion is when a function solves a problem by calling itself on a smaller version of the same problem.\nEvery recursive function needs a base case that stops the calls and a recursive case that makes the problem smaller.\nEach call is paused until the smaller call returns, and then it resumes.",
+    "analogy": "Standing between two mirrors and seeing the same picture repeat, getting smaller each time until it is too small to see.",
+    "example": "factorial(4) = 4 * factorial(3) = 4 * 3 * factorial(2) = 4 * 3 * 2 * factorial(1) = 24, because factorial(1) is the base case.",
+    "code": "def factorial(n):\n    if n <= 1:          # base case\n        return 1\n    return n * factorial(n - 1)   # recursive case",
+    "dry_run": [
+      "factorial(4) calls factorial(3) and waits.",
+      "factorial(3) calls factorial(2) and waits.",
+      "factorial(2) calls factorial(1) and waits.",
+      "factorial(1) hits the base case and returns 1.",
+      "factorial(2) resumes: 2 * 1 = 2.",
+      "factorial(3) resumes: 3 * 2 = 6.",
+      "factorial(4) resumes: 4 * 6 = 24."
+    ],
+    "key_points": [
+      "Every recursion needs a base case, or it never stops.",
+      "Each recursive call must move closer to the base case.",
+      "The call stack holds each paused call.",
+      "Deep recursion can overflow the stack; iteration avoids that."
+    ],
+    "keywords": ["base case", "recursive case", "call stack", "stack overflow", "divide and conquer"]
+  },
+
+  "plan": {
+    "topic": "Five-day revision plan",
+    "plan": [
+      {"day": "Day 1", "focus": "DBMS", "tasks": ["Normalisation and keys", "Write 10 SQL queries by hand"], "check": "Explain 3NF in four lines without notes."},
+      {"day": "Day 2", "focus": "Operating Systems", "tasks": ["Process scheduling and deadlock", "Solve two scheduling problems"], "check": "Draw a Gantt chart for round-robin."},
+      {"day": "Day 3", "focus": "Computer Networks", "tasks": ["OSI and TCP/IP layers", "Subnetting practice"], "check": "Subnet 192.168.1.0/24 into four subnets."},
+      {"day": "Day 4", "focus": "Data Structures", "tasks": ["Trees, graphs, sorting", "Code one traversal from scratch"], "check": "Trace BFS on a 6-node graph."},
+      {"day": "Day 5", "focus": "Revision and mock test", "tasks": ["Revise keywords from all four topics", "One full timed mock test"], "check": "Score the mock test and note weak topics."}
+    ],
+    "key_points": [
+      "Study the weakest topic first each day, while attention is highest.",
+      "End every day with the self-test before moving on.",
+      "Keep Day 5 free of new material."
+    ],
+    "keywords": []
+  }
+}

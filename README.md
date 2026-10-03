@@ -1,6 +1,6 @@
-# 📚 StudyMate AI
+# StudyMate AI
 
-**Snap your notes → get an explanation, a quiz and revision keywords — powered by Gemma 4.**
+**Turn a photo of your notes into a study sheet — powered by Gemma 4.**
 
 Built for **React Hyderabad × MLH Hack Day 2026 (Hacktoberfest)** — **Track 2: Best Use of Gemma 4**.
 
@@ -9,56 +9,59 @@ Built for **React Hyderabad × MLH Hack Day 2026 (Hacktoberfest)** — **Track 2
 ## Problem
 
 Students revise from **photos of handwritten notes, textbook pages and diagrams**. Turning that raw
-material into something they can actually *study from* — a simple explanation, practice questions
-and the keywords that matter — is slow manual work. Generic chatbots give a wall of text and no
-structure you can practise against.
+material into something they can actually *study from* — an explanation, practice questions, a
+summary, or a plan for the days they have left — is slow manual work. Generic chatbots give a wall
+of text and no structure you can practise against.
 
 ## Solution
 
-StudyMate AI takes **one input** (a photo of notes/diagram, or a typed topic) plus a difficulty
-level, and produces **one structured output** ("study pack"):
+StudyMate AI takes **one input** — a photo of notes/diagram, or text you paste, or a question — and
+produces a structured **study sheet** in one of five modes:
 
-| Section | What it gives the student |
-|---|---|
-| 🧠 **Explanation** | A simple explanation tuned to the chosen difficulty |
-| 💡 **Analogy** | One real-life analogy so the concept clicks |
-| 📌 **Key points** | The important points, short |
-| 🔑 **Revision keywords** | Exam keywords as quick-revision pills |
-| ❓ **Quiz** | Multiple-choice questions with instant scoring + explanations |
+| Mode | Input | What the student gets |
+|---|---|---|
+| **Explain a topic** | photo or typed topic | explanation, real-life analogy, key points, exam keywords |
+| **Generate a quiz** | photo or typed topic | 3–8 MCQs with four options each, instant scoring and answer explanations |
+| **Summarise notes** | pasted notes or a photo of the page | a tight summary, key points to revise, exam keywords |
+| **Solve a doubt** | your question (+ optional photo) | concept explanation, analogy, a worked example, code, a step-by-step dry run |
+| **Build a study plan** | topics + days left | a day-by-day plan with tasks and a self-test for each day |
 
-The core loop is: **user shares → Gemma 4 understands → app responds → user acts (reads, attempts, revises)**.
+The core loop is: **student shares material → Gemma 4 understands it → the app responds → the student acts (reads, attempts, revises)**.
 
 ## How It Works
 
 ```
-📷 Photo of notes / diagram   (or)   ⌨️ Topic + Difficulty
-                    │
-                    ▼
-        Gemma 4 (gemma-4-26b-a4b-it)  ── multimodal: reads the image directly
-                    │
-                    ▼
-        Structured JSON  →  validated  →  StudyPack object
-                    │
-                    ▼
-        🧠 Explanation · 💡 Analogy · 📌 Key points · 🔑 Keywords · ❓ Quiz (+score)
+Photo of notes / pasted notes / typed topic / a question
+                    |
+                    v
+    Gemma 4 (gemma-4-26b-a4b-it)  -- multimodal: reads the image directly
+                    |
+                    v
+    Structured JSON  ->  validated  ->  StudyPack object
+                    |
+                    v
+    explanation - analogy - key points - keywords - quiz - plan
 ```
 
-1. **Input** — the student uploads an image or types a topic and picks a difficulty
-   (Beginner / Intermediate / Exam-ready) and language (English / Hinglish).
-2. **Gemma 4** — the model reads the image (multimodal) or the topic and returns **JSON only**.
-3. **Validation** — the app parses and validates the JSON into a `StudyPack` (MCQ count, 4 options
-   each, answer index clamped to range). Invalid output is retried once; if the API fails, a cached
-   pack is shown so the demo never breaks.
-4. **Result** — the UI renders Explanation / Quiz / Revision tabs; the quiz scores the student live.
+1. **Input** — the student picks a mode, then uploads an image, pastes notes, types a topic or asks
+   a question. They also pick a difficulty (Beginner / Intermediate / Exam-ready) and a language
+   (English / Hinglish).
+2. **Gemma 4** — the model reads the image (multimodal) or the text and returns **JSON only**, shaped
+   for the chosen mode.
+3. **Validation** — the app parses and validates the JSON into a `StudyPack` (MCQ count, four options
+   each, answer index clamped to range; plan entries and keywords cleaned). Fields a mode does not
+   use are dropped. Invalid output is retried once; if the API fails, a cached example sheet is shown
+   so a walkthrough never breaks.
+4. **Result** — the sheet renders in the mode's own layout; the quiz scores the student live.
 
 ## Architecture
 
 ```
-app.py                 Streamlit UI (input, tabs, quiz scoring)
-gemma_client.py        Gemma 4 client: prompt + JSON schema, multimodal call, validation
-fallback_study_pack.json  Cached demo pack used only if the live API call fails
-check.py               CLI end-to-end check (topic mode + image mode)
-samples/sample-notes.png  Sample input image (notes on Binary Search)
+app.py                     Streamlit UI: mode picker, inputs, sheet rendering, quiz scoring
+gemma_client.py            Gemma 4 client: per-mode prompt + JSON schema, multimodal call, validation
+fallback_study_packs.json  Cached example sheet per mode, used only if the live API call fails
+check.py                   CLI end-to-end check: --mode <explain|quiz|summarise|doubt|plan>, --all
+samples/sample-notes.png   Sample input image (notes on Binary Search)
 ```
 
 ## AI / Partner Technology Used
@@ -68,11 +71,11 @@ samples/sample-notes.png  Sample input image (notes on Binary Search)
 - **Model:** `gemma-4-26b-a4b-it` (Gemma 4, open-weights, served through the **Gemini API**)
 - **API:** Gemini API — `generativelanguage.googleapis.com` via the official `google-genai` SDK
 - **Where the AI lives in the code:** `gemma_client.generate_study_pack()` — this is the AI
-  component, and it is **central to the workflow**: without Gemma 4 there is no study pack at all.
+  component, and it is **central to the workflow**: without Gemma 4 there is no study sheet at all.
 - **Why Gemma 4 matters here / where multimodality adds value:** the student's real input is a
   **photo of notes**, not typed text. Gemma 4 reads the image directly, so the app needs no separate
-  OCR step and can understand handwriting, layout and small diagrams. The same model then turns
-  that understanding into structured, validated study material.
+  OCR step and can understand handwriting, layout and small diagrams. The same model then turns that
+  understanding into structured, validated study material.
 
 ## Setup Instructions
 
@@ -104,23 +107,26 @@ Get a key at <https://aistudio.google.com/apikey>. **Never commit `.env`** (it i
 streamlit run app.py
 ```
 
-Then open <http://localhost:8501>, choose **📷 Photo of notes / diagram**, upload
-`samples/sample-notes.png` (or your own photo), and press **✨ Generate study pack**.
+Then open <http://localhost:8501>, pick a mode, add your material, and generate. To try the photo
+flow, upload `samples/sample-notes.png` in **Explain a topic** or **Generate a quiz**.
 
 Quick CLI check without the UI:
 
 ```bash
-python check.py                          # topic mode
-python check.py samples/sample-notes.png # image mode (multimodal)
+python check.py                              # explain mode (typed topic)
+python check.py --mode quiz                  # quiz mode
+python check.py --image samples/sample-notes.png   # explain a photo
+python check.py --all                        # one live call per mode
 ```
 
 ## Current Status
 
-**Works:** image + topic input, difficulty/language controls, explanation + analogy + key points +
-keywords, MCQ generation with live scoring, JSON validation with retry, cached fallback pack.
+**Works:** all five modes end to end (explain, quiz, summarise, doubt, plan); photo and text input;
+difficulty and language controls; MCQ generation with live scoring; JSON validation with retry;
+per-mode cached fallback sheets.
 
-**Limitations / next steps:** no user accounts or saved history yet; quiz is self-scored on one page;
-study-plan and summarizer modes (from the original idea) are future work; rate limits are whatever
+**Limitations / next steps:** no user accounts or saved history yet; the quiz is self-scored on one
+page; the study plan is generated on request rather than tracked over time; rate limits are whatever
 the Gemini API free tier allows.
 
 ## Team Members

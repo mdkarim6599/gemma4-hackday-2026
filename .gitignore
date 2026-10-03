@@ -9,6 +9,10 @@ __pycache__/
 venv/
 .pytest_cache/
 
+# agent skills installed by the skills CLI (local dev tooling)
+.agents/
+skills-lock.json
+
 # logs / os
 *.log
 .DS_Store
